@@ -122,6 +122,8 @@ color:
     hex: '16afd9'
   - id: grey
     hex: '464646'
+  - id: red
+    hex: 'ff0000'
     
 # Create the icons you want to use.
 # Crea los iconos que quieres utilizar.
@@ -159,8 +161,8 @@ image:
     id: led_strip_variant
     resize: 40x40
     type: BINARY
-  - file: mdi:desk-lamp
-    id: desk
+  - file: mdi:fan
+    id: fan
     resize: 40x40
     type: BINARY
   - file: mdi:printer
@@ -220,8 +222,8 @@ text_sensor:
     entity_id: light.sp530e_strip
     internal: true
   - platform: homeassistant
-    id: escritorio
-    entity_id: light.escritorio
+    id: aspiratore
+    entity_id: fan.aspiratore_bagno
     internal: true
   - platform: homeassistant
     id: impresora
@@ -319,9 +321,9 @@ binary_sensor:
                   value: !lambda "return !id(show_return_page);"
             else:
               - homeassistant.service:
-                  service: light.toggle
+                  service: fan.toggle
                   data:
-                    entity_id: light.wandlicht
+                    entity_id: fan.aspiratore_bagno
   - platform: touchscreen
     name: Button 5
     x_min: 15
@@ -401,7 +403,7 @@ display:
     dc_pin: GPIO2
     color_palette: 8BIT
     rotation: 0
-    invert_colors: True
+    invert_colors: False
     lambda: |-
       auto blue = Color(0, 0, 255);
       auto rosso = Color(255, 0, 0);
@@ -417,13 +419,13 @@ display:
         // Define los textos para los botones
         const char* button_texts[] = {
           "Corridoio",
-          "Camera F",
-          "Wandlicht",
-          "PC-Licht",
+          "Camera F.",
+          "Led Tv",
+          "Asp.Bagno",
           "Impresora",
           "Impr 3D",
           "Habbit",
-          "Zurück"
+          "Indietro"
         };
 
         for (int row = 0; row < 4; row++) {
@@ -438,32 +440,32 @@ display:
           }
         }
         if (id(faretti_corridoio).state == "on") {
-          it.image(45, 20, id(lightbulb_spot), id(orange));
+          it.image(45, 20, id(lightbulb_spot), id(red));
         } else {
           it.image(45, 20, id(lightbulb_spot), id(grey));
         }
         if (id(luce_camera_filippo).state == "off") {
           it.image(155, 20, id(lightbulb), id(grey));
         } else {
-          it.image(155, 20, id(lightbulb), id(orange));
+          it.image(155, 20, id(lightbulb), id(red));
         }
         if (id(sp530e_strip).state == "off") {
           it.image(45, 95, id(led_strip_variant), id(grey));
         } else {
-          it.image(45, 95, id(led_strip_variant), id(orange));
+          it.image(45, 95, id(led_strip_variant), id(red));
         }
-        if (id(escritorio).state == "on") {
-          it.image(155, 95, id(desk), id(orange));
+        if (id(aspiratore).state == "on") {
+          it.image(155, 95, id(fan), id(red));
         } else {
-          it.image(155, 95, id(desk), id(grey));
+          it.image(155, 95, id(fan), id(grey));
         }
         if (id(impresora).state == "on") {
-          it.image(45, 170, id(printer), id(orange));
+          it.image(45, 170, id(printer), id(red));
         } else {
           it.image(45, 170, id(printer), id(grey));
         }
         if (id(impresora3d).state == "on") {
-          it.image(155, 170, id(printer3d), id(orange));
+          it.image(155, 170, id(printer3d), id(red));
         } else {
           it.image(155, 170, id(printer3d), id(grey));
         }
