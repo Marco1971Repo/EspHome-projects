@@ -216,8 +216,9 @@ text_sensor:
     entity_id: light.luce_camera_filippo
     internal: true
   - platform: homeassistant
-    id: aspirador
-    entity_id: vacuum.aspirador
+    id: sp530e_strip
+    entity_id: light.sp530e_strip
+    attribute: sp530e_light_mode
     internal: true
   - platform: homeassistant
     id: escritorio
@@ -292,19 +293,10 @@ binary_sensor:
                   id: show_return_page
                   value: !lambda "return !id(show_return_page);"
             else:
-            - if:
-                condition:
-                  lambda: 'return id(aspirador).state == "docked";'
-                then:
-                  - homeassistant.service:
-                      service: vacuum.start
-                      data:
-                        entity_id: vacuum.aspirador
-                else:
-                  - homeassistant.service:
-                      service: vacuum.return_to_base
-                      data:
-                        entity_id: vacuum.aspirador
+              - homeassistant.service:
+                  service: light.toggle
+                  data:
+                    entity_id: light.sp530e_strip
   - platform: touchscreen
     name: Button 4
     x_min: 125
@@ -450,10 +442,11 @@ display:
         } else {
           it.image(155, 20, id(lightbulb), id(orange));
         }
-        if (id(aspirador).state == "off") {
+        if (id(sp530e_strip).state == "off") {
           it.image(45, 95, id(led_strip_variant), id(grey));
         } else {
           it.image(45, 95, id(led_strip_variant), id(orange));
+          id(sp530e_strip).sp530e_light_mode = "Static White";
         }
         if (id(escritorio).state == "on") {
           it.image(155, 95, id(desk), id(orange));
