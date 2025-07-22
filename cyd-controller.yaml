@@ -218,7 +218,6 @@ text_sensor:
   - platform: homeassistant
     id: sp530e_strip
     entity_id: light.sp530e_strip
-    attribute: sp530e_light_mode
     internal: true
   - platform: homeassistant
     id: escritorio
@@ -297,6 +296,12 @@ binary_sensor:
                   service: light.toggle
                   data:
                     entity_id: light.sp530e_strip
+                    brightness: '255'
+              - homeassistant.action:                    
+                  action: select.select_option
+                  data:
+                    entity_id: select.sp530e_light_mode
+                    option: Static White
   - platform: touchscreen
     name: Button 4
     x_min: 125
@@ -446,7 +451,6 @@ display:
           it.image(45, 95, id(led_strip_variant), id(grey));
         } else {
           it.image(45, 95, id(led_strip_variant), id(orange));
-          id(sp530e_strip).sp530e_light_mode = "Static White";
         }
         if (id(escritorio).state == "on") {
           it.image(155, 95, id(desk), id(orange));
