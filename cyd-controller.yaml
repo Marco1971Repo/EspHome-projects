@@ -115,15 +115,15 @@ font:
 # Create the colors you want to use.
 # Crea los colores que quieres utilizar.
 
-color:
-  - id: black
-    hex: '000000'
-  - id: orange
-    hex: '16afd9'
-  - id: grey
-    hex: '464646'
-  - id: red
-    hex: 'ff0000'
+#color:
+#  - id: black
+#    hex: '000000'
+#  - id: orange
+#    hex: '16afd9'
+#  - id: grey
+#    hex: '464646'
+#  - id: red
+#    hex: 'ff0000'
     
 # Create the icons you want to use.
 # Crea los iconos que quieres utilizar.
@@ -165,12 +165,12 @@ image:
     id: fan
     resize: 40x40
     type: BINARY
-  - file: mdi:printer
-    id: printer
+  - file: mdi:desk
+    id: desk
     resize: 40x40
     type: BINARY
-  - file: mdi:printer-3d-nozzle
-    id: printer3d
+  - file: mdi:television
+    id: television
     resize: 40x40
     type: BINARY
   - file: mdi:home-assistant
@@ -226,12 +226,12 @@ text_sensor:
     entity_id: fan.aspiratore_bagno
     internal: true
   - platform: homeassistant
-    id: impresora
-    entity_id: light.shellydimmer2_c4d8d50d6ca9
+    id: televisore
+    entity_id: switch.televisore
     internal: true
   - platform: homeassistant
-    id: impresora3d
-    entity_id: switch.impresora_3d
+    id: scrivania
+    entity_id: switch.presascrivania
     internal: true
 
 # Assigns a function to each button, by calling the corresponding service in HA.
@@ -343,7 +343,7 @@ binary_sensor:
               - homeassistant.service:
                   service: switch.toggle
                   data:
-                    entity_id: switch.pc_led_pv_led
+                    entity_id: switch.presascrivania
   - platform: touchscreen
     name: Button 6
     x_min: 125
@@ -363,7 +363,7 @@ binary_sensor:
               - homeassistant.service:
                   service: switch.toggle
                   data:
-                    entity_id: switch.impresora_3d
+                    entity_id: switch.televisore
   - platform: touchscreen
     name: Button 7
     x_min: 15
@@ -408,6 +408,7 @@ display:
       auto blue = Color(0, 0, 255);
       auto rosso = Color(255, 0, 0);
       auto nero = Color(0, 0, 0);
+      auto grigio = Color(128,128,128);
       if (id(show_return_page)) {
         int button_width = 100;
         int button_height = 65;
@@ -422,9 +423,9 @@ display:
           "Camera F.",
           "Led Tv",
           "Asp.Bagno",
-          "Impresora",
-          "Impr 3D",
-          "Habbit",
+          "Scrivania",
+          "Televisore",
+          " ",
           "Indietro"
         };
 
@@ -433,44 +434,44 @@ display:
             int button_index = row * 2 + col;
             int x = x_start + col * (button_width + x_padding);
             int y = y_start + row * (button_height + y_padding);
-            it.rectangle(x, y, button_width, button_height, id(grey));
+            it.rectangle(x, y, button_width, button_height, grigio);
             int text_width = strlen(button_texts[button_index]) * 5.5; 
             int text_height = 16; 
             it.print(x + (button_width - text_width) / 2, y + (button_height - text_height) / 2 + 20, id(botones), button_texts[button_index]);
           }
         }
         if (id(faretti_corridoio).state == "on") {
-          it.image(45, 20, id(lightbulb_spot), id(red));
+          it.image(45, 20, id(lightbulb_spot), rosso);
         } else {
-          it.image(45, 20, id(lightbulb_spot), id(grey));
+          it.image(45, 20, id(lightbulb_spot), grigio);
         }
         if (id(luce_camera_filippo).state == "off") {
-          it.image(155, 20, id(lightbulb), id(grey));
+          it.image(155, 20, id(lightbulb), grigio);
         } else {
-          it.image(155, 20, id(lightbulb), id(red));
+          it.image(155, 20, id(lightbulb), rosso);
         }
         if (id(sp530e_strip).state == "off") {
-          it.image(45, 95, id(led_strip_variant), id(grey));
+          it.image(45, 95, id(led_strip_variant), grigio);
         } else {
-          it.image(45, 95, id(led_strip_variant), id(red));
+          it.image(45, 95, id(led_strip_variant), rosso);
         }
         if (id(aspiratore).state == "on") {
-          it.image(155, 95, id(fan), id(red));
+          it.image(155, 95, id(fan), rosso);
         } else {
-          it.image(155, 95, id(fan), id(grey));
+          it.image(155, 95, id(fan), grigio);
         }
-        if (id(impresora).state == "on") {
-          it.image(45, 170, id(printer), id(red));
+        if (id(scrivania).state == "on") {
+          it.image(45, 170, id(desk), rosso);
         } else {
-          it.image(45, 170, id(printer), id(grey));
+          it.image(45, 170, id(desk), grigio);
         }
-        if (id(impresora3d).state == "on") {
-          it.image(155, 170, id(printer3d), id(red));
+        if (id(televisore).state == "on") {
+          it.image(155, 170, id(television), rosso);
         } else {
-          it.image(155, 170, id(printer3d), id(grey));
+          it.image(155, 170, id(television), grigio);
         }
-        it.image(45, 245, id(habbit), id(grey));
-        it.image(155, 245, id(back), id(grey));
+        //it.image(45, 245, id(habbit), grigio);
+        it.image(155, 245, id(back), grigio);
 
       } else {
         static int y = 150;
@@ -500,13 +501,13 @@ display:
         }
 
         if (current_text_index == 0) {
-          it.image(15, 260, id(hometemperature), id(orange));
+          it.image(15, 260, id(hometemperature), rosso);
           it.print(70, 260, id(info), "Temperatura");
           it.printf(175, 260, id(info), "%.1f C", id(temperatura).state);
           it.print(70, 280, id(info), "Umidita'");
           it.printf(175, 280, id(info), "%.1f %%", id(umidita).state);
         } else if (current_text_index == 1) {
-          it.image(15, 260, id(flash), id(orange));
+          it.image(15, 260, id(flash), rosso);
           it.print(70, 260, id(info), "Potenza");
           it.printf(175, 260, id(info), "%.1f W", id(potenza).state);
         } else if (current_text_index == 2) {
