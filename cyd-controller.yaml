@@ -32,7 +32,7 @@ captive_portal:
 globals:
   - id: show_return_page
     type: bool
-    restore_value: yes
+    restore_value: no
     initial_value: "false"
 
 # Setup a pin to control the backlight and the LED
@@ -250,6 +250,7 @@ binary_sensor:
             condition:
               lambda: 'return !id(show_return_page);'
             then:
+              - light.turn_on: backlight
               - globals.set:
                   id: show_return_page
                   value: !lambda "return !id(show_return_page);"
@@ -270,6 +271,7 @@ binary_sensor:
             condition:
               lambda: 'return !id(show_return_page);'
             then:
+              - light.turn_on: backlight
               - globals.set:
                   id: show_return_page
                   value: !lambda "return !id(show_return_page);"
@@ -290,6 +292,7 @@ binary_sensor:
             condition:
               lambda: 'return !id(show_return_page);'
             then:
+              - light.turn_on: backlight
               - globals.set:
                   id: show_return_page
                   value: !lambda "return !id(show_return_page);"
@@ -316,6 +319,7 @@ binary_sensor:
             condition:
               lambda: 'return !id(show_return_page);'
             then:
+              - light.turn_on: backlight
               - globals.set:
                   id: show_return_page
                   value: !lambda "return !id(show_return_page);"
@@ -336,6 +340,7 @@ binary_sensor:
             condition:
               lambda: 'return !id(show_return_page);'
             then:
+              - light.turn_on: backlight
               - globals.set:
                   id: show_return_page
                   value: !lambda "return !id(show_return_page);"
@@ -356,6 +361,7 @@ binary_sensor:
             condition:
               lambda: 'return !id(show_return_page);'
             then:
+              - light.turn_on: backlight
               - globals.set:
                   id: show_return_page
                   value: !lambda "return !id(show_return_page);"
@@ -376,6 +382,7 @@ binary_sensor:
             condition:
               lambda: 'return !id(show_return_page);'
             then:
+              - light.turn_on: backlight
               - globals.set:
                   id: show_return_page
                   value: !lambda "return !id(show_return_page);"
@@ -387,6 +394,7 @@ binary_sensor:
     y_max: 295
     on_press:
       then:
+        - light.turn_on: backlight
         - globals.set:
             id: show_return_page
             value: !lambda "return !id(show_return_page);"
@@ -492,14 +500,21 @@ display:
 
         static int current_text_index = 0;
         static float text_timer = 0;
+        static int bcklght_timer = 0;
         const float text_interval = 5.0;  // Intervalo para cambiar el texto en segundos
-
-        text_timer += 1.0;  
+        const int bcklght_interval = 30;  // Intervallo spengimento bcklght
+        text_timer += 1.0;
+        bcklght_timer ++;  
         if (text_timer >= text_interval) {
           text_timer = 0;
           current_text_index = (current_text_index + 1) % 2;  // Alternar entre cuatro textos
         }
-
+        if (bcklght_timer >= bcklght_interval) {
+          bcklght_timer = 0;
+          auto call = id(backlight).turn_off();
+          //perform action...
+          call.perform();
+        }
         if (current_text_index == 0) {
           it.image(15, 260, id(hometemperature), rosso);
           it.print(70, 260, id(info), "Temperatura");
@@ -518,7 +533,6 @@ display:
       }
 
 #interval:
-#  - interval: 1s
+#  - interval: 30s
 #    then:
-#      animation.next_frame: ha    
-#        it.image(120, y, id(ha), ImageAlign::CENTER); #EX line 496
+#      - light.turn_off: backlight
