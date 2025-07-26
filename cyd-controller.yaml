@@ -34,6 +34,11 @@ globals:
     type: bool
     restore_value: no
     initial_value: "false"
+  - id: bcklght_timer
+    type: int
+    restore_value: no
+    initial_value: "0"
+#static int bcklght_timer = 0;
 
 # Setup a pin to control the backlight and the LED
 output:
@@ -173,8 +178,8 @@ image:
     id: television
     resize: 40x40
     type: BINARY
-  - file: mdi:home-assistant
-    id: habbit
+  - file: mdi:dishwasher
+    id: dishwasher
     resize: 40x40
     type: BINARY
 # Replace the home gif as you want.
@@ -233,6 +238,10 @@ text_sensor:
     id: scrivania
     entity_id: switch.presascrivania
     internal: true
+  - platform: homeassistant
+    id: lavastoviglie
+    entity_id: switch.lavastoviglie
+    internal: true    
 
 # Assigns a function to each button, by calling the corresponding service in HA.
 # Asigna una función a cada botón, llamando al servicio correspondiente en HA.
@@ -386,6 +395,11 @@ binary_sensor:
               - globals.set:
                   id: show_return_page
                   value: !lambda "return !id(show_return_page);"
+            else:
+              - homeassistant.service:
+                  service: switch.toggle
+                  data:
+                    entity_id: switch.lavastoviglie
   - platform: touchscreen
     name: Button 8
     x_min: 125
@@ -397,7 +411,7 @@ binary_sensor:
         - light.turn_on: backlight
         - globals.set:
             id: show_return_page
-            value: !lambda "return !id(show_return_page);"
+            value: !lambda "return !id(show_return_page);id(bcklght_timer) = 0;"
 
 # Setup the ili9xxx platform
 # Display is used as 240x320 by default so we rotate it to 90°
@@ -433,7 +447,7 @@ display:
           "Asp.Bagno",
           "Scrivania",
           "Televisore",
-          " ",
+          "Lavastoviglie",
           "Indietro"
         };
 
@@ -478,7 +492,11 @@ display:
         } else {
           it.image(155, 170, id(television), grigio);
         }
-        //it.image(45, 245, id(habbit), grigio);
+        if (id(lavastoviglie).state == "on") {
+          it.image(45, 245, id(dishwasher), rosso);
+        } else {
+          it.image(45, 245, id(dishwasher), grigio);
+        }
         it.image(155, 245, id(back), grigio);
 
       } else {
@@ -500,17 +518,17 @@ display:
 
         static int current_text_index = 0;
         static float text_timer = 0;
-        static int bcklght_timer = 0;
+        
         const float text_interval = 5.0;  // Intervalo para cambiar el texto en segundos
         const int bcklght_interval = 30;  // Intervallo spengimento bcklght
         text_timer += 1.0;
-        bcklght_timer ++;  
+        id(bcklght_timer) ++;  
         if (text_timer >= text_interval) {
           text_timer = 0;
           current_text_index = (current_text_index + 1) % 2;  // Alternar entre cuatro textos
         }
-        if (bcklght_timer >= bcklght_interval) {
-          bcklght_timer = 0;
+        if (id(bcklght_timer) >= bcklght_interval) {
+          id(bcklght_timer) = 0;
           auto call = id(backlight).turn_off();
           //perform action...
           call.perform();
