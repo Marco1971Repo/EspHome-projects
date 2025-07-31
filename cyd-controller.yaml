@@ -270,49 +270,44 @@ text_sensor:
 
 binary_sensor:
   - platform: touchscreen
-    name: Button 1
+    name: Button 0
+    page_id: idlePage
+    x_min: 15
+    x_max: 210
+    y_min: 5
+    y_max: 130
+    on_press:
+      then:
+        display.page.show: firstPage
+  - platform: touchscreen
+    name: Button 11
+    page_id: firstPage
     x_min: 15
     x_max: 115
     y_min: 5
     y_max: 70
     on_press:
       then:
-        - if:
-            condition:
-              lambda: 'return !id(show_return_page);'
-            then:
-              - light.turn_on: backlight
-              - globals.set:
-                  id: show_return_page
-                  value: !lambda "return !id(show_return_page);"
-            else:
-              - homeassistant.service:
-                  service: light.toggle
-                  data:
-                    entity_id: light.faretti_corridoio
+        - homeassistant.service:
+            service: light.toggle
+            data:
+              entity_id: light.faretti_corridoio
   - platform: touchscreen
-    name: Button 2
+    name: Button 21
+    page_id: firstPage
     x_min: 125
     x_max: 225
     y_min: 5
     y_max: 70
     on_press:
       then:
-        - if:
-            condition:
-              lambda: 'return !id(show_return_page);'
-            then:
-              - light.turn_on: backlight
-              - globals.set:
-                  id: show_return_page
-                  value: !lambda "return !id(show_return_page);"
-            else:
-              - homeassistant.service:
-                  service: light.toggle
-                  data:
-                    entity_id: light.luce_camera_filippo
+        - homeassistant.service:
+            service: light.toggle
+            data:
+              entity_id: light.luce_camera_filippo
   - platform: touchscreen
-    name: Button 3
+    name: Button 31
+    page_id: firstPage
     x_min: 15
     x_max: 115
     y_min: 80
@@ -339,7 +334,8 @@ binary_sensor:
                     entity_id: select.sp530e_light_mode
                     option: Static White
   - platform: touchscreen
-    name: Button 4
+    name: Button 41
+    page_id: firstPage
     x_min: 125
     x_max: 225
     y_min: 80
@@ -360,7 +356,8 @@ binary_sensor:
                   data:
                     entity_id: fan.aspiratore_bagno
   - platform: touchscreen
-    name: Button 5
+    name: Button 51
+    page_id: firstPage
     x_min: 15
     x_max: 115
     y_min: 155
@@ -381,7 +378,8 @@ binary_sensor:
                   data:
                     entity_id: switch.presascrivania
   - platform: touchscreen
-    name: Button 6
+    name: Button 61
+    page_id: firstPage
     x_min: 125
     x_max: 225
     y_min: 155
@@ -402,7 +400,8 @@ binary_sensor:
                   data:
                     entity_id: switch.televisore
   - platform: touchscreen
-    name: Button 7
+    name: Button 71
+    page_id: firstPage
     x_min: 15
     x_max: 115
     y_min: 230
@@ -423,18 +422,18 @@ binary_sensor:
                   data:
                     entity_id: switch.lavastoviglie
   - platform: touchscreen
-    name: Button 8
+    name: Button 81
+    page_id: firstPage
     x_min: 125
     x_max: 225
     y_min: 230
     y_max: 295
     on_press:
       then:
-        - light.turn_on: backlight
+        - display.page.show: idlePage
         - globals.set:
-            id: show_return_page
-            value: !lambda "return !id(show_return_page);id(bcklght_timer) = 0;"
-
+            id: bcklght_timer
+            value: "0"
 # Setup the ili9xxx platform
 # Display is used as 240x320 by default so we rotate it to 90°
 
@@ -448,150 +447,203 @@ display:
     color_palette: 8BIT
     rotation: 0
     invert_colors: False
-    lambda: |-
-      auto blue = Color(0, 0, 255);
-      auto rosso = Color(255, 0, 0);
-      auto nero = Color(0, 0, 0);
-      auto grigio = Color(128,128,128);
-      if(id(Portone).state == "on")
-        id(show_return_page) = false;
-      if (id(show_return_page)) {
-        int button_width = 100;
-        int button_height = 65;
-        int x_start = 15;
-        int y_start = 15;
-        int x_padding = 10;
-        int y_padding = 10;
-
-        // Define los textos para los botones
-        const char* button_texts[] = {
-          "Corridoio",
-          "Camera F.",
-          "Led Tv",
-          "Asp.Bagno",
-          "Scrivania",
-          "Televisore",
-          "Lavastoviglie",
-          "Indietro"
-        };
-
-        for (int row = 0; row < 4; row++) {
-          for (int col = 0; col < 2; col++) {
-            int button_index = row * 2 + col;
-            int x = x_start + col * (button_width + x_padding);
-            int y = y_start + row * (button_height + y_padding);
-            it.rectangle(x, y, button_width, button_height, grigio);
-            int text_width = strlen(button_texts[button_index]) * 5.5; 
-            int text_height = 16; 
-            it.print(x + (button_width - text_width) / 2, y + (button_height - text_height) / 2 + 20, id(botones), button_texts[button_index]);
-          }
-        }
-        if (id(faretti_corridoio).state == "on") {
-          it.image(45, 20, id(lightbulb_spot), rosso);
-        } else {
-          it.image(45, 20, id(lightbulb_spot), grigio);
-        }
-        if (id(luce_camera_filippo).state == "off") {
-          it.image(155, 20, id(lightbulb), grigio);
-        } else {
-          it.image(155, 20, id(lightbulb), rosso);
-        }
-        if (id(sp530e_strip).state == "off") {
-          it.image(45, 95, id(led_strip_variant), grigio);
-        } else {
-          it.image(45, 95, id(led_strip_variant), rosso);
-        }
-        if (id(aspiratore).state == "on") {
-          it.image(155, 95, id(fan), rosso);
-        } else {
-          it.image(155, 95, id(fan), grigio);
-        }
-        if (id(scrivania).state == "on") {
-          it.image(45, 170, id(desk), rosso);
-        } else {
-          it.image(45, 170, id(desk), grigio);
-        }
-        if (id(televisore).state == "on") {
-          it.image(155, 170, id(television), rosso);
-        } else {
-          it.image(155, 170, id(television), grigio);
-        }
-        if (id(lavastoviglie).state == "on") {
-          it.image(45, 245, id(dishwasher), rosso);
-        } else {
-          it.image(45, 245, id(dishwasher), grigio);
-        }
-        it.image(155, 245, id(back), grigio);
-
-      } else {
-        static int y = 150;
-        static int y_direction = 4;  // Velocidad del movimiento
-        const int y_min = 145;       
-        const int y_max = 155;       
-        static int current_text_index = 0;
-        static float text_timer = 0;
-        it.fill(nero);
-        auto call = id(led).turn_off();
-        call.perform();
-        if(id(esptime).now().is_valid())
-        {
-          it.strftime(120, 60, id(fecha), TextAlign::CENTER, "%d/%m/%Y", id(esptime).now());
-          it.strftime(120, 100, id(hora), TextAlign::CENTER, "%H:%M", id(esptime).now());
-          if(id(Portone).state == "on" )
+    pages:
+      - id: idlePage
+        lambda: |-
+          auto rosso = Color(255, 0, 0);
+          auto grigio = Color(128,128,128);
+          int button_width = 100;
+          int button_height = 65;
+          static int current_text_index = 0;
+          static float text_timer = 0;
+          const float text_interval = 5.0;  // Intervalo para cambiar el texto en segundos
+          const int bcklght_interval = 30;  // Intervallo spengimento bcklght
+          if(id(esptime).now().is_valid())
           {
-            id(bcklght_timer) = 0;
-            auto call = id(backlight).turn_on();
-            //perform action...
-            call.perform();
-
-            if (current_text_index == 0 || current_text_index == 2)
+            it.strftime(120, 60, id(fecha), TextAlign::CENTER, "%d/%m/%Y", id(esptime).now());
+            it.strftime(120, 100, id(hora), TextAlign::CENTER, "%H:%M", id(esptime).now());
+            it.rectangle(70, 130, button_width, button_height, grigio);
+            it.image(100, 140, id(alarmicon), grigio);
+            text_timer += 1.0;
+            id(bcklght_timer) ++;  
+            if (text_timer >= text_interval)
             {
-              it.image(100, 140, id(alarmicon), rosso);
-              auto call = id(led).turn_on();
-              call.set_rgb(1.0, 0.0,0.0);
+              text_timer = 0;
+              current_text_index = (current_text_index + 1) % 2;  // Alternar entre cuatro textos
+            }
+            if (id(bcklght_timer) >= bcklght_interval)
+            {
+              id(bcklght_timer) = 0;
+              auto call = id(backlight).turn_on();
+              call.set_brightness(0.3);
+              //perform action...
               call.perform();
+            }
+            if (current_text_index == 0)
+            {
+              it.image(15, 260, id(hometemperature), rosso);
+              it.print(70, 260, id(info), "Temperatura");
+              it.printf(175, 260, id(info), "%.1f C", id(temperatura).state);
+              it.print(70, 280, id(info), "Umidita'");
+              it.printf(175, 280, id(info), "%.1f %%", id(umidita).state);
+            } else if (current_text_index == 1) 
+            {
+              it.image(15, 260, id(flash), rosso);
+              it.print(70, 260, id(info), "Potenza");
+              it.printf(175, 260, id(info), "%.1f W", id(potenza).state);
+            }            
+            if(id(Portone).state == "on" )
+            {
+              static bool bAlarmColorToggle = true;
+              id(bcklght_timer) = 0;
+              auto call = id(backlight).turn_on();
+              //perform action...
+              call.perform();
+
+              if (bAlarmColorToggle)
+              {
+                it.image(100, 140, id(alarmicon), rosso);
+                auto call = id(led).turn_on();
+                call.set_rgb(1.0, 0.0,0.0);
+                call.perform();
+                bAlarmColorToggle = false;
+              }
+              else
+              {
+                it.image(100, 140, id(alarmicon_outline), grigio);
+                auto call = id(led).turn_off();
+                call.perform();
+                bAlarmColorToggle = true;
+              }
             }
             else
             {
-              it.image(100, 140, id(alarmicon_outline), rosso);
+              auto call = id(led).turn_off();
+              call.perform();
             }
           }
-        }
-        y += y_direction;
-        if (y <= y_min || y >= y_max) {
-          y_direction = -y_direction;
-        }
+      - id: firstPage
+        lambda: |-
+            auto blue = Color(0, 0, 255);
+            auto rosso = Color(255, 0, 0);
+            auto nero = Color(0, 0, 0);
+            auto grigio = Color(128,128,128);
+            auto call = id(backlight).turn_on();
+            call.set_brightness(1.0);
+            //perform action...
+            call.perform();
+            if(id(Portone).state == "on" )
+            {
+              static bool bAlarmColorToggle = true;
+              id(bcklght_timer) = 0;
+              auto call = id(backlight).turn_on();
+              //perform action...
+              call.perform();
+
+              if (bAlarmColorToggle)
+              {
+                it.image(100, 140, id(alarmicon), rosso);
+                auto call = id(led).turn_on();
+                call.set_rgb(1.0, 0.0,0.0);
+                call.perform();
+                bAlarmColorToggle = false;
+              }
+              else
+              {
+                it.image(100, 140, id(alarmicon_outline), rosso);
+              }
+              return;  
+            }
+            if (1) {
+              int button_width = 100;
+              int button_height = 65;
+              int x_start = 15;
+              int y_start = 15;
+              int x_padding = 10;
+              int y_padding = 10;
+
+              // Define los textos para los botones
+              const char* button_texts[] = {
+                "Corridoio",
+                "Camera F.",
+                "Led Tv",
+                "Asp.Bagno",
+                "Scrivania",
+                "Televisore",
+                "Lavastoviglie",
+                "Indietro"
+              };
+
+              for (int row = 0; row < 4; row++) {
+                for (int col = 0; col < 2; col++) {
+                  int button_index = row * 2 + col;
+                  int x = x_start + col * (button_width + x_padding);
+                  int y = y_start + row * (button_height + y_padding);
+                  it.rectangle(x, y, button_width, button_height, grigio);
+                  int text_width = strlen(button_texts[button_index]) * 5.5; 
+                  int text_height = 16; 
+                  it.print(x + (button_width - text_width) / 2, y + (button_height - text_height) / 2 + 20, id(botones), button_texts[button_index]);
+                }
+              }
+              if (id(faretti_corridoio).state == "on") {
+                it.image(45, 20, id(lightbulb_spot), rosso);
+              } else {
+                it.image(45, 20, id(lightbulb_spot), grigio);
+              }
+              if (id(luce_camera_filippo).state == "off") {
+                it.image(155, 20, id(lightbulb), grigio);
+              } else {
+                it.image(155, 20, id(lightbulb), rosso);
+              }
+              if (id(sp530e_strip).state == "off") {
+                it.image(45, 95, id(led_strip_variant), grigio);
+              } else {
+                it.image(45, 95, id(led_strip_variant), rosso);
+              }
+              if (id(aspiratore).state == "on") {
+                it.image(155, 95, id(fan), rosso);
+              } else {
+                it.image(155, 95, id(fan), grigio);
+              }
+              if (id(scrivania).state == "on") {
+                it.image(45, 170, id(desk), rosso);
+              } else {
+                it.image(45, 170, id(desk), grigio);
+              }
+              if (id(televisore).state == "on") {
+                it.image(155, 170, id(television), rosso);
+              } else {
+                it.image(155, 170, id(television), grigio);
+              }
+              if (id(lavastoviglie).state == "on") {
+                it.image(45, 245, id(dishwasher), rosso);
+              } else {
+                it.image(45, 245, id(dishwasher), grigio);
+              }
+              it.image(155, 245, id(back), grigio);
+
+            } else {
+              static int y = 150;
+              static int y_direction = 4;  // Velocidad del movimiento
+              const int y_min = 145;       
+              const int y_max = 155;       
+              it.fill(nero);
+              auto call = id(led).turn_off();
+              call.perform();
+              if(id(esptime).now().is_valid())
+              {
+                it.strftime(120, 60, id(fecha), TextAlign::CENTER, "%d/%m/%Y", id(esptime).now());
+                it.strftime(120, 100, id(hora), TextAlign::CENTER, "%H:%M", id(esptime).now());
+                
+              }
+              y += y_direction;
+              if (y <= y_min || y >= y_max) {
+                y_direction = -y_direction;
+              }
 
 
-        
-        const float text_interval = 1.0;  // Intervalo para cambiar el texto en segundos
-        
-        const int bcklght_interval = 30;  // Intervallo spengimento bcklght
-        text_timer += 1.0;
-        id(bcklght_timer) ++;  
-        if (text_timer >= text_interval) {
-          text_timer = 0;
-          current_text_index = (current_text_index + 1) % 4;  // Alternar entre cuatro textos
-        }
-        if (id(bcklght_timer) >= bcklght_interval) {
-          id(bcklght_timer) = 0;
-          auto call = id(backlight).turn_off();
-          //perform action...
-          call.perform();
-        }
-        if (current_text_index == 0 || current_text_index == 1) {
-          it.image(15, 260, id(hometemperature), rosso);
-          it.print(70, 260, id(info), "Temperatura");
-          it.printf(175, 260, id(info), "%.1f C", id(temperatura).state);
-          it.print(70, 280, id(info), "Umidita'");
-          it.printf(175, 280, id(info), "%.1f %%", id(umidita).state);
-        } else if (current_text_index == 3 || current_text_index == 2) {
-          it.image(15, 260, id(flash), rosso);
-          it.print(70, 260, id(info), "Potenza");
-          it.printf(175, 260, id(info), "%.1f W", id(potenza).state);
-        } 
-      }
-
+           
+            }
 #interval:
 #  - interval: 30s
 #    then:
