@@ -263,14 +263,18 @@ text_sensor:
   - platform: homeassistant
     id: lavastoviglie
     entity_id: switch.lavastoviglie
-    internal: true    
+    internal: true
+  - platform: homeassistant
+    id: allarme_attivazione
+    entity_id: input_boolean.allarme_attivazione
+    internal: true            
 
 # Assigns a function to each button, by calling the corresponding service in HA.
 # Asigna una función a cada botón, llamando al servicio correspondiente en HA.
 
 binary_sensor:
   - platform: touchscreen
-    name: Button 0
+    name: Button 00 #Bottone fake per andare nella prima schermata di bottoni
     page_id: idlePage
     x_min: 15
     x_max: 210
@@ -279,6 +283,26 @@ binary_sensor:
     on_press:
       then:
         display.page.show: firstPage
+  - platform: touchscreen
+    name: Button 01 #Bottone attiva allarme
+    page_id: idlePage
+    x_min: 70
+    x_max: 170
+    y_min: 130
+    y_max: 195
+    on_press:
+      then: #sostituire attivazione allarme
+        - light.turn_on:
+            id: backlight
+            brightness: 100%
+        - homeassistant.service:
+            service: input_boolean.toggle
+            data:
+              entity_id: input_boolean.allarme_attivazione
+        - globals.set:
+            id: bcklght_timer
+            value: "0"
+
   - platform: touchscreen
     name: Button 11
     page_id: firstPage
@@ -408,6 +432,29 @@ binary_sensor:
     y_max: 295
     on_press:
       then:
+        display.page.show: secondPage
+  - platform: touchscreen
+    name: Button 81
+    page_id: firstPage
+    x_min: 125
+    x_max: 225
+    y_min: 230
+    y_max: 295
+    on_press:
+      then:
+        - display.page.show: idlePage
+        - globals.set:
+            id: bcklght_timer
+            value: "0"
+  - platform: touchscreen
+    name: Button 12
+    page_id: firstPage
+    x_min: 15
+    x_max: 115
+    y_min: 230
+    y_max: 295
+    on_press:
+      then:
         - if:
             condition:
               lambda: 'return !id(show_return_page);'
@@ -422,8 +469,8 @@ binary_sensor:
                   data:
                     entity_id: switch.lavastoviglie
   - platform: touchscreen
-    name: Button 81
-    page_id: firstPage
+    name: Button 82
+    page_id: secondPage
     x_min: 125
     x_max: 225
     y_min: 230
@@ -434,6 +481,7 @@ binary_sensor:
         - globals.set:
             id: bcklght_timer
             value: "0"
+
 # Setup the ili9xxx platform
 # Display is used as 240x320 by default so we rotate it to 90°
 
@@ -463,7 +511,10 @@ display:
             it.strftime(120, 60, id(fecha), TextAlign::CENTER, "%d/%m/%Y", id(esptime).now());
             it.strftime(120, 100, id(hora), TextAlign::CENTER, "%H:%M", id(esptime).now());
             it.rectangle(70, 130, button_width, button_height, grigio);
-            it.image(100, 140, id(alarmicon), grigio);
+            if (id(allarme_attivazione).state == "on")
+              it.image(100, 140, id(alarmicon), rosso);
+            else
+              it.image(100, 140, id(alarmicon), grigio);
             text_timer += 1.0;
             id(bcklght_timer) ++;  
             if (text_timer >= text_interval)
@@ -492,11 +543,12 @@ display:
               it.print(70, 260, id(info), "Potenza");
               it.printf(175, 260, id(info), "%.1f W", id(potenza).state);
             }            
-            if(id(Portone).state == "on" )
+            if(id(Portone).state == "on" && id(allarme_attivazione).state == "on" )
             {
               static bool bAlarmColorToggle = true;
               id(bcklght_timer) = 0;
               auto call = id(backlight).turn_on();
+              call.set_brightness(1.0);
               //perform action...
               call.perform();
 
@@ -524,22 +576,17 @@ display:
           }
       - id: firstPage
         lambda: |-
-            auto blue = Color(0, 0, 255);
             auto rosso = Color(255, 0, 0);
-            auto nero = Color(0, 0, 0);
             auto grigio = Color(128,128,128);
+            auto nero = Color(0, 0, 0);
             auto call = id(backlight).turn_on();
             call.set_brightness(1.0);
             //perform action...
             call.perform();
-            if(id(Portone).state == "on" )
+            id(bcklght_timer) = 0;
+            if(id(Portone).state == "on" && id(allarme_attivazione).state == "on" )
             {
               static bool bAlarmColorToggle = true;
-              id(bcklght_timer) = 0;
-              auto call = id(backlight).turn_on();
-              //perform action...
-              call.perform();
-
               if (bAlarmColorToggle)
               {
                 it.image(100, 140, id(alarmicon), rosso);
@@ -550,7 +597,10 @@ display:
               }
               else
               {
-                it.image(100, 140, id(alarmicon_outline), rosso);
+                it.image(100, 140, id(alarmicon_outline), grigio);
+                auto call = id(led).turn_off();
+                call.perform();
+                bAlarmColorToggle = true;
               }
               return;  
             }
@@ -570,7 +620,7 @@ display:
                 "Asp.Bagno",
                 "Scrivania",
                 "Televisore",
-                "Lavastoviglie",
+                "Avanti",
                 "Indietro"
               };
 
@@ -615,14 +665,16 @@ display:
               } else {
                 it.image(155, 170, id(television), grigio);
               }
-              if (id(lavastoviglie).state == "on") {
+              /*if (id(lavastoviglie).state == "on") {
                 it.image(45, 245, id(dishwasher), rosso);
               } else {
                 it.image(45, 245, id(dishwasher), grigio);
-              }
+              }*/
+              it.image(45, 245, id(next), grigio);
               it.image(155, 245, id(back), grigio);
 
-            } else {
+            } else 
+            {
               static int y = 150;
               static int y_direction = 4;  // Velocidad del movimiento
               const int y_min = 145;       
@@ -640,10 +692,101 @@ display:
               if (y <= y_min || y >= y_max) {
                 y_direction = -y_direction;
               }
-
-
-           
             }
+      - id: secondPage
+        lambda: |-
+            auto rosso = Color(255, 0, 0);
+            auto grigio = Color(128,128,128);
+            auto nero = Color(0, 0, 0);
+            auto call = id(backlight).turn_on();
+            call.set_brightness(1.0);
+            //perform action...
+            call.perform();
+            id(bcklght_timer) = 0;
+            if(id(Portone).state == "on" && id(allarme_attivazione).state == "on" )
+            {
+              static bool bAlarmColorToggle = true;
+              if (bAlarmColorToggle)
+              {
+                it.image(100, 140, id(alarmicon), rosso);
+                auto call = id(led).turn_on();
+                call.set_rgb(1.0, 0.0,0.0);
+                call.perform();
+                bAlarmColorToggle = false;
+              }
+              else
+              {
+                it.image(100, 140, id(alarmicon_outline), grigio);
+                auto call = id(led).turn_off();
+                call.perform();
+                bAlarmColorToggle = true;
+              }
+              return;  
+            }
+            if (1) {
+              int button_width = 100;
+              int button_height = 65;
+              int x_start = 15;
+              int y_start = 15;
+              int x_padding = 10;
+              int y_padding = 10;
+
+              // Define los textos para los botones
+              const char* button_texts[] = {
+                "Lavastoviglie",
+                "Lavatrice",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "Indietro"
+              };
+
+              for (int row = 0; row < 4; row++) {
+                for (int col = 0; col < 2; col++) {
+                  int button_index = row * 2 + col;
+                  int x = x_start + col * (button_width + x_padding);
+                  int y = y_start + row * (button_height + y_padding);
+                  it.rectangle(x, y, button_width, button_height, grigio);
+                  int text_width = strlen(button_texts[button_index]) * 5.5; 
+                  int text_height = 16; 
+                  it.print(x + (button_width - text_width) / 2, y + (button_height - text_height) / 2 + 20, id(botones), button_texts[button_index]);
+                }
+              }
+              if (id(faretti_corridoio).state == "on") {
+                it.image(45, 20, id(lightbulb_spot), rosso);
+              } else {
+                it.image(45, 20, id(lightbulb_spot), grigio);
+              }
+              if (id(luce_camera_filippo).state == "off") {
+                it.image(155, 20, id(lightbulb), grigio);
+              } else {
+                it.image(155, 20, id(lightbulb), rosso);
+              }
+              it.image(155, 245, id(back), grigio);
+            } else 
+            {
+              static int y = 150;
+              static int y_direction = 4;  // Velocidad del movimiento
+              const int y_min = 145;       
+              const int y_max = 155;       
+              it.fill(nero);
+              auto call = id(led).turn_off();
+              call.perform();
+              if(id(esptime).now().is_valid())
+              {
+                it.strftime(120, 60, id(fecha), TextAlign::CENTER, "%d/%m/%Y", id(esptime).now());
+                it.strftime(120, 100, id(hora), TextAlign::CENTER, "%H:%M", id(esptime).now());
+                
+              }
+              y += y_direction;
+              if (y <= y_min || y >= y_max) {
+                y_direction = -y_direction;
+              }
+            }
+           
+            
 #interval:
 #  - interval: 30s
 #    then:
