@@ -8,7 +8,7 @@ esp32:
     type: arduino      #esp-idf
 
 # Enable logging
-logger:
+#logger:
 
 # Enable Home Assistant API
 api:
@@ -190,6 +190,10 @@ image:
     id: dishwasher
     resize: 40x40
     type: BINARY
+  - file: mdi:washing-machine
+    id: washingmachine
+    resize: 40x40
+    type: BINARY    
   - file: mdi:page-next
     id: next
     resize: 40x40
@@ -264,6 +268,10 @@ text_sensor:
     id: lavastoviglie
     entity_id: switch.lavastoviglie
     internal: true
+  - platform: homeassistant
+    id: lavatrice
+    entity_id: switch.lavatrice
+    internal: true    
   - platform: homeassistant
     id: allarme_attivazione
     entity_id: input_boolean.allarme_attivazione
@@ -448,26 +456,30 @@ binary_sensor:
             value: "0"
   - platform: touchscreen
     name: Button 12
-    page_id: firstPage
+    page_id: secondPage
     x_min: 15
     x_max: 115
-    y_min: 230
-    y_max: 295
+    y_min: 5
+    y_max: 70
     on_press:
       then:
-        - if:
-            condition:
-              lambda: 'return !id(show_return_page);'
-            then:
-              - light.turn_on: backlight
-              - globals.set:
-                  id: show_return_page
-                  value: !lambda "return !id(show_return_page);"
-            else:
-              - homeassistant.service:
-                  service: switch.toggle
-                  data:
-                    entity_id: switch.lavastoviglie
+        - homeassistant.service:
+            service: switch.toggle
+            data:
+              entity_id: switch.lavastoviglie
+  - platform: touchscreen
+    name: Button 22
+    page_id: secondPage
+    x_min: 125
+    x_max: 225
+    y_min: 5
+    y_max: 70
+    on_press:
+      then:
+        - homeassistant.service:
+            service: switch.toggle
+            data:
+              entity_id: switch.lavatrice            
   - platform: touchscreen
     name: Button 82
     page_id: secondPage
@@ -754,15 +766,15 @@ display:
                   it.print(x + (button_width - text_width) / 2, y + (button_height - text_height) / 2 + 20, id(botones), button_texts[button_index]);
                 }
               }
-              if (id(faretti_corridoio).state == "on") {
-                it.image(45, 20, id(lightbulb_spot), rosso);
+              if (id(lavastoviglie).state == "on") {
+                it.image(45, 20, id(dishwasher), rosso);
               } else {
-                it.image(45, 20, id(lightbulb_spot), grigio);
+                it.image(45, 20, id(dishwasher), grigio);
               }
-              if (id(luce_camera_filippo).state == "off") {
-                it.image(155, 20, id(lightbulb), grigio);
+              if (id(lavatrice).state == "off") {
+                it.image(155, 20, id(washingmachine), grigio);
               } else {
-                it.image(155, 20, id(lightbulb), rosso);
+                it.image(155, 20, id(washingmachine), rosso);
               }
               it.image(155, 245, id(back), grigio);
             } else 
