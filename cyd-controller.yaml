@@ -8,7 +8,7 @@ esp32:
     type: arduino      #esp-idf
 
 # Enable logging
-#logger:
+logger:
 
 # Enable Home Assistant API
 api:
@@ -38,7 +38,6 @@ globals:
     type: int
     restore_value: no
     initial_value: "0"
-#static int bcklght_timer = 0;
 
 # Setup a pin to control the backlight and the LED
 output:
@@ -117,22 +116,6 @@ font:
     id: botones
     size: 11
 
-# Create the colors you want to use.
-# Crea los colores que quieres utilizar.
-
-#color:
-#  - id: black
-#    hex: '000000'
-#  - id: orange
-#    hex: '16afd9'
-#  - id: grey
-#    hex: '464646'
-#  - id: red
-#    hex: 'ff0000'
-    
-# Create the icons you want to use.
-# Crea los iconos que quieres utilizar.
-
 image:
   - file: mdi:alarm-light
     id: alarmicon
@@ -199,19 +182,13 @@ image:
     resize: 40x40
     type: BINARY
     
-# Replace the home gif as you want.
-# Reemplaza el gif the inicio como quieras.
 
-#animation:
-#  - file: "habbit.gif"
-#    id: ha
-#    resize: 70x70
-#    type: TRANSPARENT_BINARY
 
 # This will fetch time from Home Assistant
 time:
   - platform: homeassistant
     id: esptime
+
 
 # Create sensors from HA you want to use and show.
 # Crea los sensores de HA que quieres utilizar y mostrar.
@@ -232,6 +209,10 @@ sensor:
 
 
 text_sensor:
+  - platform: homeassistant
+    id: LaMaFiMaAllarme
+    entity_id: alarm_control_panel.allarme
+    internal: true
   - platform: homeassistant
     id: Finestra_Cucina
     entity_id: binary_sensor.finestra_cucina_contact
@@ -272,10 +253,7 @@ text_sensor:
     id: lavatrice
     entity_id: switch.lavatrice
     internal: true    
-  - platform: homeassistant
-    id: allarme_attivazione
-    entity_id: input_boolean.allarme_attivazione
-    internal: true            
+          
 
 # Assigns a function to each button, by calling the corresponding service in HA.
 # Asigna una función a cada botón, llamando al servicio correspondiente en HA.
@@ -300,16 +278,31 @@ binary_sensor:
     y_max: 195
     on_press:
       then: #sostituire attivazione allarme
-        - light.turn_on:
-            id: backlight
-            brightness: 100%
-        - homeassistant.service:
-            service: input_boolean.toggle
-            data:
-              entity_id: input_boolean.allarme_attivazione
-        - globals.set:
-            id: bcklght_timer
-            value: "0"
+        - if:
+            condition:
+              lambda: 'return id(LaMaFiMaAllarme).state == "armed_home";'
+            then:
+              - globals.set:
+                  id: bcklght_timer
+                  value: "0"
+              - light.turn_on:
+                  id: backlight
+                  brightness: 100%
+              - homeassistant.service:
+                  service: alarm_control_panel.alarm_disarm
+                  data:
+                    entity_id: alarm_control_panel.allarme
+                    code: "1234"
+            else:
+              - light.turn_on:
+                  id: backlight
+                  brightness: 100%
+              - homeassistant.service:
+                  service: alarm_control_panel.alarm_arm_home
+                  data:
+                    entity_id: alarm_control_panel.allarme
+                    code: "1234"
+
 
   - platform: touchscreen
     name: Button 11
@@ -523,7 +516,7 @@ display:
             it.strftime(120, 60, id(fecha), TextAlign::CENTER, "%d/%m/%Y", id(esptime).now());
             it.strftime(120, 100, id(hora), TextAlign::CENTER, "%H:%M", id(esptime).now());
             it.rectangle(70, 130, button_width, button_height, grigio);
-            if (id(allarme_attivazione).state == "on")
+            if (id(LaMaFiMaAllarme).state == "armed_home")
               it.image(100, 140, id(alarmicon), rosso);
             else
               it.image(100, 140, id(alarmicon), grigio);
@@ -555,7 +548,7 @@ display:
               it.print(70, 260, id(info), "Potenza");
               it.printf(175, 260, id(info), "%.1f W", id(potenza).state);
             }            
-            if(id(Portone).state == "on" && id(allarme_attivazione).state == "on" )
+            if ( (id(Portone).state == "on") && (id(LaMaFiMaAllarme).state == "armed_home") )
             {
               static bool bAlarmColorToggle = true;
               id(bcklght_timer) = 0;
@@ -596,7 +589,7 @@ display:
             //perform action...
             call.perform();
             id(bcklght_timer) = 0;
-            if(id(Portone).state == "on" && id(allarme_attivazione).state == "on" )
+            if(id(Portone).state == "on" && id(LaMaFiMaAllarme).state == "armed_home" )
             {
               static bool bAlarmColorToggle = true;
               if (bAlarmColorToggle)
@@ -715,7 +708,7 @@ display:
             //perform action...
             call.perform();
             id(bcklght_timer) = 0;
-            if(id(Portone).state == "on" && id(allarme_attivazione).state == "on" )
+            if(id(Portone).state == "on" && id(LaMaFiMaAllarme).state == "armed_home" )
             {
               static bool bAlarmColorToggle = true;
               if (bAlarmColorToggle)
