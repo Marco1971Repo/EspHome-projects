@@ -120,6 +120,10 @@ image:
   - file: mdi:alarm-light
     id: alarmicon
     resize: 40x40
+    type: BINARY      
+  - file: mdi:home-lock-open
+    id: apriportone
+    resize: 40x40
     type: BINARY  
   - file: mdi:alarm-light-outline
     id: alarmicon_outline
@@ -256,7 +260,6 @@ text_sensor:
     id: piantana
     entity_id: light.piantana_soggiorno
     internal: true              
-
 # Assigns a function to each button, by calling the corresponding service in HA.
 # Asigna una función a cada botón, llamando al servicio correspondiente en HA.
 
@@ -274,8 +277,8 @@ binary_sensor:
   - platform: touchscreen
     name: Button 01 #Bottone attiva allarme
     page_id: idlePage
-    x_min: 70
-    x_max: 170
+    x_min: 10
+    x_max: 110
     y_min: 130
     y_max: 195
     on_press:
@@ -304,6 +307,17 @@ binary_sensor:
                   data:
                     entity_id: alarm_control_panel.allarme
 #                    code: "1234" #codice non richiesto per armare l'allarme
+  - platform: touchscreen
+    name: Button 02
+    page_id: idlePage
+    x_min: 120
+    x_max: 220
+    y_min: 130
+    y_max: 195
+    on_press:
+      then:
+        - homeassistant.action:
+            action: script.scriptapriportone
   - platform: touchscreen
     name: Button 11
     page_id: firstPage
@@ -505,11 +519,13 @@ display:
           {
             it.strftime(120, 20, id(fecha), TextAlign::CENTER, "%d/%m/%Y", id(esptime).now());
             it.strftime(120, 60, id(hora), TextAlign::CENTER, "%H:%M", id(esptime).now());
-            it.rectangle(70, 130, button_width, button_height, grigio);
+            it.rectangle(10, 130, button_width, button_height, grigio);
+            it.rectangle(120, 130, button_width, button_height, grigio);
+            it.image(150, 140, id(apriportone), grigio);
             if (id(LaMaFiMaAllarme).state == "armed_home")
-              it.image(100, 140, id(alarmicon), rosso);
+              it.image(40, 140, id(alarmicon), rosso);
             else
-              it.image(100, 140, id(alarmicon), grigio);
+              it.image(40, 140, id(alarmicon), grigio);
             text_timer += 1.0;
             id(bcklght_timer) ++;  
             if (text_timer >= text_interval)
