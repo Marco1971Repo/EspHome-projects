@@ -273,7 +273,8 @@ binary_sensor:
     y_max: 130
     on_press:
       then:
-        display.page.show: firstPage
+        - lambda: 'auto call = id(backlight).turn_on(); call.set_brightness(1.0); call.perform();delay(500);'
+        - display.page.show: firstPage
   - platform: touchscreen
     name: Button 01 #Bottone attiva allarme
     page_id: idlePage
@@ -317,7 +318,7 @@ binary_sensor:
     on_press:
       then:
         - homeassistant.action:
-            action: script.scriptapriportone
+            action: script.script_apri_portone
   - platform: touchscreen
     name: Button 11
     page_id: firstPage
@@ -513,7 +514,7 @@ display:
           int button_height = 65;
           static int current_text_index = 0;
           static float text_timer = 0;
-          const float text_interval = 5.0;  // Intervalo para cambiar el texto en segundos
+          const float text_interval = 2.0;  // Intervalo para cambiar el texto en segundos
           const int bcklght_interval = 30;  // Intervallo spengimento bcklght
           if(id(esptime).now().is_valid())
           {
@@ -527,12 +528,12 @@ display:
             else
               it.image(40, 140, id(alarmicon), grigio);
             text_timer += 1.0;
-            id(bcklght_timer) ++;  
+            id(bcklght_timer) ++;
             if (text_timer >= text_interval)
             {
               text_timer = 0;
               current_text_index = (current_text_index + 1) % 2;  // Alternar entre cuatro textos
-            }
+            }            
             if (id(bcklght_timer) >= bcklght_interval)
             {
               id(bcklght_timer) = 0;
@@ -543,16 +544,17 @@ display:
             }
             if (current_text_index == 0)
             {
-              it.image(15, 280, id(hometemperature), rosso);
-              it.print(70, 280, id(info), "Temperatura");
-              it.printf(175, 280, id(info), "%.1f C", id(temperatura).state);
-              it.print(70, 300, id(info), "Umidita'");
-              it.printf(175, 300, id(info), "%.1f %%", id(umidita).state);
+              it.image(15, 210, id(hometemperature), rosso);
+              it.print(70, 210, id(info), "Temperatura");
+              it.printf(175, 210, id(info), "%.1f C", id(temperatura).state);
+              it.print(70, 230, id(info), "Umidita'");
+              it.printf(175, 230, id(info), "%.1f %%", id(umidita).state);
+             
             } else if (current_text_index == 1) 
             {
-              it.image(15, 280, id(flash), rosso);
-              it.print(70, 280, id(info), "Potenza");
-              it.printf(175, 280, id(info), "%.1f W", id(potenza).state);
+              it.image(15, 210, id(flash), rosso);
+              it.print(70, 210, id(info), "Potenza");
+              it.printf(175, 210, id(info), "%.1f W", id(potenza).state); 
             }            
             if ( (id(Portone_Finestre).state == "on") && (id(LaMaFiMaAllarme).state == "armed_home" || id(LaMaFiMaAllarme).state == "armed_away"))
             {
@@ -803,4 +805,18 @@ display:
                   it.print(x + (button_width - text_width) / 2, y + (button_height - text_height) / 2 + 20, id(botones), button_texts[button_index]);
                 }
               }
-              
+# For example cycle through pages on a timer
+#interval:
+#  - interval: 30s
+#    then:
+#      - display.page.show: idlePage
+
+interval:
+  - interval: 30s
+    then:
+      - if:
+         condition:
+           not:
+             display.is_displaying_page: firstPage
+         then:
+           - display.page.show: idlePage
