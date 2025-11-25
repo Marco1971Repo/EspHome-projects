@@ -475,9 +475,9 @@ binary_sensor:
     on_press:
       then:
         - homeassistant.service:
-            service: switch.toggle
+            service: light.toggle
             data:
-              entity_id: switch.luce_camera_filippo           
+              entity_id: light.luce_camera_filippo
   - platform: touchscreen
     name: Button 82
     page_id: secondPage
@@ -770,53 +770,18 @@ display:
               }              
               it.image(155, 245, id(back), grigio);
             }
-      - id: KeyBoardPage
-        lambda: |-
-            auto rosso = Color(255, 0, 0);
-            auto grigio = Color(128,128,128);
-            auto nero = Color(0, 0, 0);
-             
-              int button_width = 100;
-              int button_height = 65;
-              int x_start = 15;
-              int y_start = 15;
-              int x_padding = 10;
-              int y_padding = 10;
-
-              // Define los textos para los botones
-              const char* button_texts[] = {
-                "Lavastoviglie",
-                "Lavatrice",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "Indietro"
-              };
-              for (int row = 0; row < 4; row++) {
-                for (int col = 0; col < 2; col++) {
-                  int button_index = row * 2 + col;
-                  int x = x_start + col * (button_width + x_padding);
-                  int y = y_start + row * (button_height + y_padding);
-                  it.rectangle(x, y, button_width, button_height, grigio);
-                  int text_width = strlen(button_texts[button_index]) * 5.5; 
-                  int text_height = 16; 
-                  it.print(x + (button_width - text_width) / 2, y + (button_height - text_height) / 2 + 20, id(botones), button_texts[button_index]);
-                }
-              }
 # For example cycle through pages on a timer
 #interval:
 #  - interval: 30s
 #    then:
 #      - display.page.show: idlePage
 
-interval:
-  - interval: 30s
-    then:
-      - if:
-         condition:
-           not:
-             display.is_displaying_page: firstPage
-         then:
-           - display.page.show: idlePage
+#interval:
+#  - interval: 30s
+#    then:
+#      - if:
+#         condition:
+#           not:
+#             display.is_displaying_page: idlePage
+#         then:
+#           - display.page.show: idlePage
