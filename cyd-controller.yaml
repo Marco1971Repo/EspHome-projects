@@ -22,15 +22,19 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-
+  manual_ip:
+    static_ip: 192.168.1.32
+    gateway: 192.168.1.1
+    subnet: 255.255.255.0
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
     ssid: "Cyd-Controller Fallback Hotspot"
     password: "4ZQHWpRZB63r"
 
+
 captive_portal:
 globals:
-  - id: show_return_page
+  - id: apriPortonePressed
     type: bool
     restore_value: no
     initial_value: "false"
@@ -317,6 +321,9 @@ binary_sensor:
     y_max: 195
     on_press:
       then:
+        - globals.set:
+            id: apriPortonePressed
+            value: 'true'        
         - homeassistant.action:
             action: script.script_apri_portone
   - platform: touchscreen
@@ -516,17 +523,31 @@ display:
           static float text_timer = 0;
           const float text_interval = 2.0;  // Intervalo para cambiar el texto en segundos
           const int bcklght_interval = 30;  // Intervallo spengimento bcklght
+          const int iApriPortoneReleaseButtonTimer = 5;
+          static int iApriPortoneReleaseButton = 0;
           if(id(esptime).now().is_valid())
           {
             it.strftime(120, 20, id(fecha), TextAlign::CENTER, "%d/%m/%Y", id(esptime).now());
             it.strftime(120, 60, id(hora), TextAlign::CENTER, "%H:%M", id(esptime).now());
             it.rectangle(10, 130, button_width, button_height, grigio);
             it.rectangle(120, 130, button_width, button_height, grigio);
-            it.image(150, 140, id(apriportone), grigio);
+            
             if (id(LaMaFiMaAllarme).state == "armed_home")
               it.image(40, 140, id(alarmicon), rosso);
             else
               it.image(40, 140, id(alarmicon), grigio);
+            if (id(apriPortonePressed))
+            {
+              iApriPortoneReleaseButton++;
+              it.image(150, 140, id(apriportone), rosso);
+            }
+            else
+              it.image(150, 140, id(apriportone), grigio);
+            if (iApriPortoneReleaseButton <= iApriPortoneReleaseButtonTimer)
+            {
+              id(apriPortonePressed) = false;
+              iApriPortoneReleaseButton = 0;
+            }
             text_timer += 1.0;
             id(bcklght_timer) ++;
             if (text_timer >= text_interval)
